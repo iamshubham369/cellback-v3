@@ -10,8 +10,15 @@ import Card from '../../components/ui/Card'
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm()
-    const { login } = useAuth()
+    const { login, user, profile } = useAuth()
     const navigate = useNavigate()
+
+    React.useEffect(() => {
+        if (user && profile) {
+            const dashboard = profile.role === 'admin' ? '/admin/dashboard' : profile.role === 'store' ? '/store/dashboard' : '/dashboard'
+            navigate(dashboard, { replace: true })
+        }
+    }, [user, profile, navigate])
 
     const onSubmit = async (data) => {
         try {

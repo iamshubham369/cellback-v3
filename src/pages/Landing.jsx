@@ -1,10 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Zap, Recycle, ShieldCheck, TrendingUp, ChevronRight } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
 import ImpactCounter from '../components/ImpactCounter'
 
 const Landing = () => {
+    const { user, profile } = useAuth()
     return (
         <div className="flex flex-col min-h-screen bg-slate-950 pt-16">
             {/* Hero Section */}
@@ -27,17 +29,28 @@ const Landing = () => {
                         Join CellBack's mission to prevent toxic waste. Drop off your old batteries at any partner Kirana Store and get rewarded instantly.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link to="/register">
-                            <Button className="px-10 py-5 text-lg bg-primary shadow-2xl shadow-primary/30 flex items-center gap-2 group">
-                                Get Started
-                                <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                            </Button>
-                        </Link>
-                        <Link to="/login">
-                            <Button variant="outline" className="px-10 py-5 text-lg border-slate-700 bg-white/5 backdrop-blur-sm">
-                                Member Login
-                            </Button>
-                        </Link>
+                        {!user ? (
+                            <>
+                                <Link to="/register">
+                                    <Button className="px-10 py-5 text-lg bg-primary shadow-2xl shadow-primary/30 flex items-center gap-2 group">
+                                        Get Started
+                                        <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                                    </Button>
+                                </Link>
+                                <Link to="/login">
+                                    <Button variant="outline" className="px-10 py-5 text-lg border-slate-700 bg-white/5 backdrop-blur-sm">
+                                        Member Login
+                                    </Button>
+                                </Link>
+                            </>
+                        ) : (
+                            <Link to={profile?.role === 'admin' ? '/admin/dashboard' : profile?.role === 'store' ? '/store/dashboard' : '/dashboard'}>
+                                <Button className="px-10 py-5 text-lg bg-primary shadow-2xl shadow-primary/30 flex items-center gap-2 group">
+                                    Go to Dashboard
+                                    <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </section>

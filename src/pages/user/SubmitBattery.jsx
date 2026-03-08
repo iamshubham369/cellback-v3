@@ -30,18 +30,23 @@ const SubmitBattery = () => {
         defaultValues: { quantity: 1 }
     })
 
-    // Fetch approved stores
+    // Fetch approved/active stores
     const { data: stores, isLoading: storesLoading } = useQuery({
         queryKey: ['stores-list'],
         queryFn: async () => {
             const data = await gSheets.get('stores')
-            return data.filter(s => s.status === 'approved')
+            // Match both seeded 'active' status and future 'approved' status
+            return data.filter(s => s.status === 'approved' || s.status === 'active')
         }
     })
 
     const mutation = useMutation({
         mutationFn: async (formData) => {
-            const qrData = JSON.parse(generateQRData(profile.id, formData.storeId, formData.type, formData.quantity))
+            // Check if user exists first to be safe
+            if (!profile?.id) throw new Error("Auth signal lost")
+
+            const qrDataStr = generateQRData(profile.id, formData.storeId, formData.type, formData.quantity)
+            const qrData = JSON.parse(qrDataStr)
             const subId = uuidv4()
 
             const submissionPayload = {
@@ -63,10 +68,10 @@ const SubmitBattery = () => {
         onSuccess: (data) => {
             setTicket(data)
             setStep(4)
-            toast.success('Ticket generated! Please visit the store.')
+            toast.success('Protocol Initiated! Visit the partner to synchronize.')
         },
         onError: (error) => {
-            toast.error(error.message || 'Generation failed')
+            toast.error(error.message || 'Transmission failed')
         }
     })
 
@@ -77,7 +82,7 @@ const SubmitBattery = () => {
         { id: 'AAA', label: 'AAA Alkaline', icon: Battery, color: 'text-primary' },
         { id: '9V', label: '9V Battery', icon: Battery, color: 'text-accent' },
         { id: 'li_ion', label: 'Li-ion (Mobile)', icon: Battery, color: 'text-blue-500' },
-        { id: 'button_cell', label: 'Button Cell', icon: Circle, color: 'text-slate-400' }
+        { id: 'button_cell', label: 'Button Cell', icon: Battery, color: 'text-slate-400' }
     ]
 
     const selectedType = watch('type')
@@ -130,6 +135,7 @@ const SubmitBattery = () => {
                         <div className="flex justify-center mt-12">
                             <Button
                                 disabled={!selectedType}
+                                type="button"
                                 onClick={() => setStep(2)}
                                 className="px-12 py-5 text-lg group flex items-center gap-2 bg-primary shadow-xl shadow-primary/20"
                             >
@@ -161,10 +167,10 @@ const SubmitBattery = () => {
                             </div>
                         </Card>
                         <div className="flex justify-between gap-6">
-                            <Button variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 flex items-center justify-center gap-2 border-slate-800">
+                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 py-5 flex items-center justify-center gap-2 border-slate-800">
                                 <ChevronLeft className="w-5 h-5" /> Previous
                             </Button>
-                            <Button variant="primary" onClick={() => setStep(3)} className="flex-[2] py-5 group flex items-center justify-center gap-2 bg-primary shadow-xl shadow-primary/20">
+                            <Button type="button" variant="primary" onClick={() => setStep(3)} className="flex-[2] py-5 group flex items-center justify-center gap-2 bg-primary shadow-xl shadow-primary/20">
                                 Continue <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </div>
@@ -174,11 +180,17 @@ const SubmitBattery = () => {
                 {step === 3 && (
                     <div className="space-y-8 animate-in slide-in-from-right duration-300">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold mb-2">Nearest Drop-off</h2>
+                            <h2 className="text-3xl font-bold mb-2">All Available Partners</h2>
                             <p className="text-slate-400 text-sm font-bold uppercase tracking-widest italic">Authorized Kirana Partners</p>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                            {stores?.length === 0 && (
+                                <div className="p-8 text-center glass-card border-dashed border-slate-800">
+                                    <MapPin className="w-10 h-10 text-slate-600 mx-auto mb-4" />
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Search Signal Weak: No partners found in your sector</p>
+                                </div>
+                            )}
                             {stores?.map(store => (
                                 <label key={store.id} className="cursor-pointer block group">
                                     <input

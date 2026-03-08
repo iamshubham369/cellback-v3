@@ -12,10 +12,14 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         // Retrieve local session signal
         const savedUser = localStorage.getItem('cellback_user')
+        const savedProfile = localStorage.getItem('cellback_profile')
+
         if (savedUser) {
-            const userData = JSON.parse(savedUser)
-            setUser(userData)
-            fetchProfile(userData.id)
+            setUser(JSON.parse(savedUser))
+            if (savedProfile) {
+                setProfile(JSON.parse(savedProfile))
+            }
+            fetchProfile(JSON.parse(savedUser).id)
         } else {
             setLoading(false)
         }

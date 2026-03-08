@@ -13,10 +13,19 @@ const Navbar = () => {
         navigate('/')
     }
 
+    const getDashboardPath = () => {
+        if (!user) return '/'
+        switch (profile?.role) {
+            case 'admin': return '/admin/dashboard'
+            case 'store': return '/store/dashboard'
+            default: return '/dashboard'
+        }
+    }
+
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
             <div className="container mx-auto px-4 h-full flex items-center justify-between">
-                <Link to="/" className="flex items-center gap-2.5 group">
+                <Link to={getDashboardPath()} className="flex items-center gap-2.5 group">
                     <div className="w-9 h-9 bg-primary/20 border border-primary/30 rounded-xl flex items-center justify-center group-hover:bg-primary/30 transition-all">
                         <Zap className="w-5 h-5 text-primary-light" />
                     </div>
