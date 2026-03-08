@@ -1,0 +1,1 @@
+import{j as e}from"./index-DKJrv43D.js";const n=({className:r="",count:s=1})=>e.jsx(e.Fragment,{children:Array.from({length:s}).map((a,t)=>e.jsx("div",{className:`animate-pulse bg-slate-900 border border-slate-800 rounded-xl ${r}`},t))});export{n as S};
