@@ -6,9 +6,9 @@ import ImpactCounter from '../components/ImpactCounter'
 
 const Landing = () => {
     return (
-        <div className="flex flex-col min-h-screen bg-slate-950">
+        <div className="flex flex-col min-h-screen bg-slate-950 pt-16">
             {/* Hero Section */}
-            <section className="relative py-24 md:py-32 overflow-hidden px-4 md:px-0">
+            <section className="relative min-h-[calc(100vh-64px)] flex items-center overflow-hidden px-4 md:px-0 py-20">
                 {/* Background glow */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none">
                     <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/20 blur-[120px] rounded-full" />
