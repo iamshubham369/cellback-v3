@@ -45,7 +45,7 @@ const SubmitBattery = () => {
             // Check if user exists first to be safe
             if (!profile?.id) throw new Error("Auth signal lost")
 
-            const currentStore = stores.find(s => s.id === formData.storeId)
+            const currentStore = stores?.find(s => s.id == formData.storeId)
             const qrDataStr = generateQRData(profile.id, formData.storeId, formData.type, formData.quantity)
             const qrData = JSON.parse(qrDataStr)
             const subId = uuidv4()
@@ -54,7 +54,7 @@ const SubmitBattery = () => {
                 id: subId,
                 user_id: profile.id,
                 store_id: formData.storeId,
-                battery_type: formData.type,
+                battery_type: formData.type || 'Standard',
                 claimed_quantity: formData.quantity,
                 qr_token: qrData.token,
                 status: 'pending',

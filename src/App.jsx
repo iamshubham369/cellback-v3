@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import Navbar from './components/layout/Navbar'
 import Sidebar from './components/layout/Sidebar'
+import { MapPin } from 'lucide-react'
 
 const DashboardLayout = ({ children }) => {
     return (
@@ -84,7 +85,9 @@ function App() {
                                 <Route path="/submit" element={<ProtectedRoute role="user"><DashboardLayout><SubmitBattery /></DashboardLayout></ProtectedRoute>} />
                                 <Route path="/rewards" element={<ProtectedRoute role="user"><DashboardLayout><Rewards /></DashboardLayout></ProtectedRoute>} />
                                 <Route path="/history" element={<ProtectedRoute role="user"><DashboardLayout><History /></DashboardLayout></ProtectedRoute>} />
-                                <Route path="/profile" element={<ProtectedRoute role="user"><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
+                                <Route path="/profile" element={<ProtectedRoute role={null}><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>} />
+                                <Route path="/map" element={<ProtectedRoute role={null}><DashboardLayout><div className="flex flex-col items-center justify-center h-[60vh] text-center border-2 border-dashed border-slate-800 rounded-3xl"><MapPin className="w-12 h-12 text-primary mb-4" /><h3 className="text-xl font-bold text-white uppercase italic">Impact Map: Coming Soon</h3><p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Connecting all recycling hubs in real-time</p></div></DashboardLayout></ProtectedRoute>} />
+
                                 <Route path="/store/dashboard" element={<ProtectedRoute role="store"><DashboardLayout><StoreDashboard /></DashboardLayout></ProtectedRoute>} />
                                 <Route path="/store/scan" element={<ProtectedRoute role="store"><DashboardLayout><ScanQR /></DashboardLayout></ProtectedRoute>} />
                                 <Route path="/store/history" element={<ProtectedRoute role="store"><DashboardLayout><StoreHistory /></DashboardLayout></ProtectedRoute>} />
