@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate, Link } from 'react-router-dom'
 import { gSheets } from '../../lib/google-sheets'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../../context/AuthContext'
@@ -67,7 +68,8 @@ const SubmitBattery = () => {
             return {
                 ...submissionPayload,
                 qr_token: qrData.token,
-                store_name: currentStore?.store_name || 'Partner Store'
+                store_name: currentStore?.store_name || 'Partner Store',
+                battery_label: batteryTypes.find(t => t.id == formData.type)?.label || formData.type
             }
         },
         onSuccess: (data) => {
@@ -92,7 +94,7 @@ const SubmitBattery = () => {
 
     const selectedType = watch('type')
     const selectedStoreId = watch('storeId')
-    const selectedStore = stores?.find(s => s.id === selectedStoreId)
+    const selectedStore = stores?.find(s => s.id == selectedStoreId)
 
     return (
         <div className="max-w-2xl mx-auto py-8">
@@ -191,36 +193,42 @@ const SubmitBattery = () => {
                             </div>
 
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                {stores?.length === 0 && (
+                                {storesLoading ? (
+                                    <div className="flex flex-col items-center justify-center p-12 text-slate-500 gap-4">
+                                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-[10px] font-bold uppercase tracking-widest italic">Locating hubs...</p>
+                                    </div>
+                                ) : stores?.length === 0 ? (
                                     <div className="p-8 text-center glass-card border-dashed border-slate-800">
                                         <MapPin className="w-10 h-10 text-slate-600 mx-auto mb-4" />
                                         <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Search Signal Weak: No partners found in your sector</p>
                                     </div>
+                                ) : (
+                                    stores.map(store => (
+                                        <label key={store.id} className="cursor-pointer block group">
+                                            <input
+                                                type="radio"
+                                                value={store.id}
+                                                {...register('storeId', { required: true })}
+                                                className="peer hidden"
+                                            />
+                                            <Card className={`flex items-center justify-between p-6 border-slate-800 transition-all group-hover:bg-slate-900/80 peer-checked:border-accent/40 peer-checked:bg-accent/5 relative overflow-hidden text-left`}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-3 bg-slate-900 rounded-xl group-hover:scale-110 transition-transform">
+                                                        <MapPin className="w-5 h-5 text-accent" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-white uppercase italic tracking-tight">{store.store_name}</h4>
+                                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">{store.address}, {store.city}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-6 h-6 rounded-full border-2 border-slate-800 peer-checked:border-accent peer-checked:bg-accent flex items-center justify-center transition-all">
+                                                    <div className="w-2 h-2 rounded-full bg-white opacity-0 peer-checked:opacity-100" />
+                                                </div>
+                                            </Card>
+                                        </label>
+                                    ))
                                 )}
-                                {stores?.map(store => (
-                                    <label key={store.id} className="cursor-pointer block group">
-                                        <input
-                                            type="radio"
-                                            value={store.id}
-                                            {...register('storeId', { required: true })}
-                                            className="peer hidden"
-                                        />
-                                        <Card className={`flex items-center justify-between p-6 border-slate-800 transition-all group-hover:bg-slate-900/80 peer-checked:border-accent/40 peer-checked:bg-accent/5 relative overflow-hidden`}>
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-3 bg-slate-900 rounded-xl group-hover:scale-110 transition-transform">
-                                                    <MapPin className="w-5 h-5 text-accent" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-white uppercase italic tracking-tight">{store.store_name}</h4>
-                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">{store.address}, {store.city}</p>
-                                                </div>
-                                            </div>
-                                            <div className="w-6 h-6 rounded-full border-2 border-slate-800 peer-checked:border-accent peer-checked:bg-accent flex items-center justify-center transition-all">
-                                                <div className="w-2 h-2 rounded-full bg-white opacity-0 peer-checked:opacity-100" />
-                                            </div>
-                                        </Card>
-                                    </label>
-                                ))}
                             </div>
 
                             <div className="flex justify-between gap-6">
@@ -229,10 +237,10 @@ const SubmitBattery = () => {
                                 </Button>
                                 <Button
                                     type="submit"
-                                    disabled={!selectedStoreId || mutation.isLoading}
+                                    disabled={!selectedStoreId || mutation.isPending}
                                     className="flex-[4] py-5 bg-gradient-to-r from-primary to-green-500 shadow-2xl flex items-center justify-center gap-3 group"
                                 >
-                                    {mutation.isLoading ? 'Confirming Protocol...' : (
+                                    {mutation.isPending ? 'Confirming Protocol...' : (
                                         <>
                                             <QrCode className="w-5 h-5" /> Generate Recycling Signal <ChevronRight className="w-5 h-5 group-hover:translate-x-1" />
                                         </>
@@ -244,11 +252,19 @@ const SubmitBattery = () => {
                 </form>
             ) : (
                 <div className="animate-in zoom-in duration-500 space-y-8 flex flex-col items-center">
-                    <QRGenerator
-                        value={JSON.stringify({ id: ticket?.id, token: ticket?.qr_token })}
-                        title={`${ticket?.battery_type || 'Cell'} Signal Generated`}
-                        subtitle={`Target: ${ticket?.store_name || 'Partner Store'}`}
-                    />
+                    {ticket ? (
+                        <QRGenerator
+                            value={JSON.stringify({ id: ticket.id, token: ticket.qr_token })}
+                            title={`${ticket.battery_label || 'Cell'} Signal Generated`}
+                            subtitle={`Target: ${ticket.store_name || 'Partner Store'}`}
+                        />
+                    ) : (
+                        <div className="p-12 glass-card flex flex-col items-center gap-4 text-slate-500">
+                            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                            <p className="text-xs font-bold uppercase tracking-widest">Finalizing Transmission...</p>
+                        </div>
+                    )}
+
                     <div className="flex flex-col items-center gap-6 mt-8 w-full">
                         <div className="flex items-center gap-4 p-5 glass-card border-none bg-blue-500/10 w-full text-left">
                             <AlertTriangle className="w-10 h-10 text-blue-400 shrink-0" />

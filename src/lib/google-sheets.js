@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
 
 export const gSheets = {
     async get(sheetName) {
-        const response = await fetch(`${API_URL}?action=getData&sheet=${sheetName}`);
+        const response = await fetch(`${API_URL}?action=getData&sheet=${sheetName}&t=${Date.now()}`);
         return response.json();
     },
 

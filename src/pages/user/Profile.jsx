@@ -19,7 +19,7 @@ const Profile = () => {
                         <User className="w-14 h-14 text-slate-500" />
                     </div>
                     <h2 className="text-2xl font-bold mb-1 font-display italic text-white leading-none capitalize">{profile?.name}</h2>
-                    <p className="text-slate-500 text-sm mb-6 font-bold uppercase tracking-widest leading-none">{profile?.email}</p>
+                    <p className="text-slate-500 text-sm mb-6 font-bold uppercase tracking-widest leading-none break-all">{profile?.email}</p>
                     <Badge variant="success" className="uppercase tracking-widest text-[11px] font-bold px-4 py-1.5 border border-primary/20 bg-primary/5">{profile?.role}</Badge>
 
                     <div className="w-full h-px bg-white/5 my-10" />
@@ -46,8 +46,8 @@ const Profile = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div>
                                 <p className="text-[10px] text-slate-500 mb-2 uppercase font-bold tracking-widest">Email Identity</p>
-                                <p className="text-white font-bold flex items-center gap-3 italic">
-                                    <Mail className="w-4 h-4 text-slate-500" />
+                                <p className="text-white font-bold flex items-center gap-3 italic break-all">
+                                    <Mail className="w-4 h-4 text-slate-500 shrink-0" />
                                     {profile?.email}
                                 </p>
                             </div>

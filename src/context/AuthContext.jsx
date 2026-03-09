@@ -87,6 +87,13 @@ export const AuthProvider = ({ children }) => {
         return { user: userPayload }
     }
 
+    const updatePoints = (newPoints) => {
+        if (!profile) return
+        const updatedProfile = { ...profile, points: newPoints }
+        setProfile(updatedProfile)
+        localStorage.setItem('cellback_profile', JSON.stringify(updatedProfile))
+    }
+
     const logout = async () => {
         setUser(null)
         setProfile(null)
@@ -95,7 +102,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, profile, loading, login, register, logout, fetchProfile }}>
+        <AuthContext.Provider value={{ user, profile, loading, login, register, logout, fetchProfile, updatePoints }}>
             {children}
         </AuthContext.Provider>
     )

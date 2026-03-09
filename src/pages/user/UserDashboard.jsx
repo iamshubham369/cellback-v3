@@ -22,31 +22,56 @@ import Skeleton from '../../components/ui/Skeleton'
 import ImpactCounter from '../../components/ImpactCounter'
 
 const UserDashboard = () => {
-    const { profile } = useAuth()
+    const { profile, fetchProfile } = useAuth()
 
     // Fetch stats logic
     const { data: stats, isLoading } = useQuery({
         queryKey: ['user-stats', profile?.id],
         queryFn: async () => {
-            const submissions = await gSheets.get('submissions')
-            const userSubmissions = submissions.filter(s => s.user_id == profile?.id)
+            const [usersData, submissionsData, storesData, redemptionsData] = await Promise.all([
+                gSheets.get('users'),
+                gSheets.get('submissions'),
+                gSheets.get('stores'),
+                gSheets.get('redemptions')
+            ])
 
-            const verifiedCount = userSubmissions.filter(s => s.status === 'verified').length
+            const currentUser = usersData.find(u => u.id == profile?.id)
+            const userSubmissions = submissionsData.filter(s => s.user_id == profile?.id)
+            const userRedemptions = redemptionsData.filter(r => r.user_id == profile?.id)
 
-            // Get stores for joining store_name
-            const stores = await gSheets.get('stores')
+            const verifiedSubmissions = userSubmissions.filter(s => s.status === 'verified')
+
+            // source of truth for earned vs spent
+            const totalPointsEarned = verifiedSubmissions.reduce((sum, s) => sum + (Number(s.points_awarded) || 0), 0)
+            const totalPointsSpent = userRedemptions.reduce((sum, r) => sum + (Number(r.points_spent) || 0), 0)
+            const calculatedBalance = Math.max(0, totalPointsEarned - totalPointsSpent)
+
+            const totalBatteries = verifiedSubmissions.reduce((sum, s) => sum + (Number(s.verified_quantity) || 0), 0)
+            const toxicWaste = (totalBatteries * 0.05).toFixed(2) // 50g per battery
+
+            // Calculate global stats for counter
+            const globalVerified = submissionsData.filter(s => s.status === 'verified')
+            const globalTotalBatteries = globalVerified.reduce((sum, s) => sum + (Number(s.verified_quantity) || 0), 0)
+
+            // Sync the AuthContext profile if points differ from reconstructed balance
+            if (currentUser && currentUser.points != calculatedBalance) {
+                await fetchProfile(profile.id)
+            }
 
             const recentSub = userSubmissions
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                 .slice(0, 3)
                 .map(sub => ({
                     ...sub,
-                    stores: stores.find(s => s.id == sub.store_id)
+                    stores: storesData.find(s => s.id == sub.store_id)
                 }))
 
             return {
-                submissions: verifiedCount,
-                recent: recentSub
+                totalBatteries,
+                toxicWaste,
+                recent: recentSub,
+                livePoints: calculatedBalance,
+                globalTotalBatteries
             }
         },
         enabled: !!profile?.id
@@ -65,7 +90,11 @@ const UserDashboard = () => {
                         </div>
                         <div className="flex items-end justify-between">
                             <div className="text-6xl md:text-7xl font-bold text-white tabular-nums drop-shadow-lg">
-                                {profile?.points?.toLocaleString()}
+                                {isLoading ? (
+                                    <span className="opacity-20 animate-pulse">---</span>
+                                ) : (
+                                    ((stats?.livePoints ?? profile?.points) || 0).toLocaleString()
+                                )}
                                 <span className="text-sm border border-white/20 px-3 py-1 rounded-full ml-4 inline-block translate-y-[-1.5rem] bg-white/10 uppercase tracking-widest">PTS</span>
                             </div>
                             <Link to="/rewards">
@@ -82,21 +111,31 @@ const UserDashboard = () => {
                         <div className="p-4 bg-accent/20 border border-accent/20 rounded-2xl group-hover:scale-110 transition-transform">
                             <Leaf className="w-8 h-8 text-accent" />
                         </div>
-                        <Badge variant="success" className="uppercase tracking-widest text-[10px]">Eco Tier: Silver</Badge>
+                        <Badge variant="success" className="uppercase tracking-widest text-[10px]">
+                            {stats?.totalBatteries > 50 ? 'Eco Tier: Gold' : 'Eco Tier: Silver'}
+                        </Badge>
                     </div>
                     <div className="mt-8">
-                        <h3 className="text-xl font-bold mb-4 font-display text-white">Project Impact</h3>
+                        <div className="flex justify-between items-baseline mb-4">
+                            <h3 className="text-xl font-bold font-display text-white italic tracking-tight">Environmental Impact</h3>
+                            <span className="text-[10px] text-primary font-bold uppercase tracking-widest">{stats?.totalBatteries || 0} Cells Recycled</span>
+                        </div>
                         <div className="space-y-4">
                             <div>
                                 <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                                    <span>Recycling Progress</span>
-                                    <span className="text-white">74%</span>
+                                    <span>Toxicity Nullified</span>
+                                    <span className="text-white">{stats?.toxicWaste || 0} KG</span>
                                 </div>
                                 <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary w-[74%] rounded-full shadow-[0_0_10px_rgba(22,163,74,0.5)]" />
+                                    <div
+                                        className="h-full bg-primary transition-all duration-1000 shadow-[0_0_10px_rgba(22,163,74,0.5)]"
+                                        style={{ width: `${Math.min(100, ((stats?.totalBatteries || 0) % 50) * 2)}%` }}
+                                    />
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 leading-relaxed italic font-medium">12 more cells until your next reward voucher!</p>
+                            <p className="text-xs text-slate-500 leading-relaxed italic font-medium">
+                                {50 - ((stats?.totalBatteries || 0) % 50)} more cells until your next eco-level upgrade!
+                            </p>
                         </div>
                     </div>
                 </Card>
@@ -125,8 +164,8 @@ const UserDashboard = () => {
             {/* Global Impact Counter */}
             <section className="bg-slate-900/40 p-12 rounded-3xl border border-white/5 relative overflow-hidden backdrop-blur-xl">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(22,163,74,0.1),transparent)]" />
-                <h2 className="text-xl font-bold text-center mb-10 text-slate-500 uppercase tracking-widest">Global Network Impact</h2>
-                <ImpactCounter targetBatteries={85420} />
+                <h2 className="text-xl font-bold text-center mb-10 text-slate-500 uppercase tracking-widest italic tracking-[0.2em]">Global Network Synergies</h2>
+                <ImpactCounter targetBatteries={stats?.globalTotalBatteries || 0} />
             </section>
 
             {/* Recent Submissions */}
