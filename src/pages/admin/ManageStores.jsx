@@ -44,12 +44,12 @@ const ManageStores = () => {
 
     return (
         <div className="space-y-12 animate-in fade-in duration-700">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 pb-6 border-b border-white/5">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 pb-6 border-b border-white/5">
                 <div>
                     <h1 className="text-4xl font-bold font-display italic tracking-tight text-white leading-none mb-2">Partner Network Hubs</h1>
                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[3px] leading-none italic">Authorized Carrier Verification Center</p>
                 </div>
-                <div className="flex bg-slate-900/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl">
+                <div className="flex flex-wrap bg-slate-900/50 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl">
                     {['all', 'pending', 'approved', 'suspended'].map(v => (
                         <button
                             key={v}
@@ -62,7 +62,7 @@ const ManageStores = () => {
                 </div>
             </div>
 
-            <div className="bg-slate-900/20 rounded-[2rem] border border-white/5 overflow-hidden">
+            <div className="bg-slate-900/20 rounded-[2rem] border border-white/5 overflow-x-auto">
                 <Table headers={['Signal Hub Name', 'Authorized Operator', 'Geographic Location', 'Hub Capacity', 'Safety Tier', 'Access Controls']}>
                     {filteredStores?.length > 0 ? filteredStores.map(store => (
                         <tr key={store.id} className="text-sm group hover:bg-white/5 transition-colors">

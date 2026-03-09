@@ -46,7 +46,7 @@ const Logistics = () => {
 
     return (
         <div className="space-y-12 animate-in fade-in duration-700">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 pb-6 border-b border-white/5">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 pb-6 border-b border-white/5">
                 <div>
                     <h1 className="text-4xl font-bold font-display italic tracking-tight text-white leading-none mb-2">Logistics Fleet Protocol</h1>
                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[3px] leading-none italic">Manage and track hazardous waste carrier signals</p>
@@ -87,7 +87,7 @@ const Logistics = () => {
                 </Card>
             </div>
 
-            <div className="bg-slate-900/20 rounded-[2rem] border border-white/5 overflow-hidden">
+            <div className="bg-slate-900/20 rounded-[2rem] border border-white/5 overflow-x-auto">
                 <Table headers={['Signal Time', 'Source Hub Hub', 'Geographic Location', 'Payload Volume', 'Protocol Status', 'Fleet Deployment']}>
                     {pickups?.length > 0 ? pickups.map(p => (
                         <tr key={p.id} className="text-sm group hover:bg-white/5 transition-colors">

@@ -42,7 +42,7 @@ const StoreHistory = () => {
 
     return (
         <div className="space-y-12 animate-in fade-in duration-700">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 pb-6 border-b border-white/5">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 pb-6 border-b border-white/5">
                 <div>
                     <h1 className="text-4xl font-bold font-display italic tracking-tight text-white leading-none mb-2">Store Signal Logs</h1>
                     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[3px] leading-none italic">Comprehensive Traceability Archive of Partner Hub Contributions</p>
@@ -58,7 +58,7 @@ const StoreHistory = () => {
                 </div>
             </div>
 
-            <div className="bg-slate-900/20 rounded-[2rem] border border-white/5 overflow-hidden">
+            <div className="bg-slate-900/20 rounded-[2rem] border border-white/5 overflow-x-auto">
                 <Table headers={['Signal Time', 'Source Node (User)', 'Battery Species', 'Signal Count', 'Verification Status', 'Commission Trace']}>
                     {isLoading ? (
                         <Skeleton count={10} className="h-16 w-full mb-2" />
